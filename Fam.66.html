@@ -12,6 +12,28 @@
     <title>KeyShotXR</title>
     <style type="text/css">
       body { -ms-touch-action: none; }
+      #KeyShotXR {
+        position: relative;
+        z-index: 1;
+      }
+      .drag-hint {
+        position: absolute;
+        top: 30%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 32px;
+        pointer-events: none;
+        animation: dragHint 2s infinite;
+        z-index: 1000;
+        opacity: 0.9;
+        color: white;
+        text-shadow: 0 0 3px rgba(0,0,0,0.5);
+      }
+      @keyframes dragHint {
+        0% { transform: translate(-80%, -50%) rotate(-5deg); }
+        50% { transform: translate(80%, -50%) rotate(5deg); }
+        100% { transform: translate(-80%, -50%) rotate(-5deg); }
+      }
     </style>
     <script type="text/javascript" src="Fam.66/files/KeyShotXR.js"></script>
     <script type="text/javascript">
@@ -47,12 +69,58 @@
         var isIBooksWidget = false;
         
         keyshotXR = new keyshotXR(nameOfDiv,folderName,viewPortWidth,viewPortHeight,backgroundColor,uCount,vCount,uWrap,vWrap,uMouseSensitivity,vMouseSensitivity,uStartIndex,vStartIndex,minZoom,maxZoom,rotationDamping,downScaleToBrowser,addDownScaleGUIButton,downloadOnInteraction,imageExtension,showLoading,loadingIcon,allowFullscreen,uReverse,vReverse,hotspots,isIBooksWidget);
+
+        // Add interaction detection
+        var viewer = document.getElementById('KeyShotXR');
+        var hint = document.querySelector('.drag-hint');
+        var inactivityTimer;
+        var isInteracting = false;
+        
+        function showHint() {
+          if (hint && !isInteracting) {
+            hint.style.display = 'block';
+          }
+        }
+
+        function hideHint() {
+          if (hint) {
+            hint.style.display = 'none';
+          }
+        }
+
+        function startInactivityTimer() {
+          clearTimeout(inactivityTimer);
+          inactivityTimer = setTimeout(function() {
+            isInteracting = false;
+            showHint();
+          }, 10000); // Show hint after 10 seconds of inactivity
+        }
+
+        function handleInteractionStart() {
+          isInteracting = true;
+          hideHint();
+          startInactivityTimer();
+        }
+
+        function handleInteractionEnd() {
+          isInteracting = false;
+          startInactivityTimer();
+        }
+
+        viewer.addEventListener('mousedown', handleInteractionStart);
+        viewer.addEventListener('touchstart', handleInteractionStart);
+        viewer.addEventListener('mouseup', handleInteractionEnd);
+        viewer.addEventListener('touchend', handleInteractionEnd);
+        
+        // Start the initial inactivity timer
+        startInactivityTimer();
       }
 
       window.onload = initKeyShotXR;
     </script>
   </head>
   <body oncontextmenu="return false;">
+    <div class="drag-hint">👆</div>
     <div id="KeyShotXR"></div>
   </body>
 </html>
